@@ -4,14 +4,19 @@
 #
 # Authors:
 # - Philippe Sauter <phsauter@iis.ee.ethz.ch>
-
 services:
   pulp-docker:
-    image: hpretl/iic-osic-tools:2025.03
+    build:
+      context: .
+      dockerfile: Dockerfile.user
+      args:
+        UID: ${USER_ID}
+        GID: ${GROUP_ID}
+    image: hpretl/iic-osic-tools:2025.03-custom
     environment:
-      - UID=${UID}
-      - GID=${GID}
-    user: "${UID}:${GID}"
+      - UID=${USER_ID}
+      - GID=${GROUP_ID}
+    user: "${USER_ID}:${GROUP_ID}"
     volumes:
       - ./:/fosic/designs/croc
     stdin_open: true
