@@ -16,7 +16,7 @@ services:
     environment:
       - UID=${USER_ID}
       - GID=${GROUP_ID}
-    user: "${USER_ID}:${GROUP_ID}"
+    user: root 
     volumes:
       - ./:/fosic/designs/croc
     stdin_open: true

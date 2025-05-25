@@ -39,12 +39,11 @@ RUN echo 'source ~/venv/bin/activate' >> /home/designer/.bashrc
 #ENV PATH="/foss/tools/verilator/bin:$PATH"
 ENV PATH="/foss/tools/verilator/bin:/foss/tools/yosys/bin:$PATH"
 # Clone and build C++ version of vlsiffra
-RUN git clone https://github.com/antonblanchard/vlsiffra.git /opt/vlsiffra && \
-    cd /opt/vlsiffra && make
+RUN git clone https://github.com/antonblanchard/vlsiffra.git /opt/vlsiffra
 
 # Add vlsiffra binary to PATH
 ENV PATH="/opt/vlsiffra:$PATH"
 
 
-USER $USERNAME
+#USER $USERNAME
 WORKDIR /home/$USERNAME
