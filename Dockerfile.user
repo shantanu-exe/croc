@@ -1,15 +1,13 @@
 # Base image
 FROM hpretl/iic-osic-tools:2025.03
 
-# Set user-related build arguments
 ARG UID=501
 ARG GID=20
 ARG USERNAME=designer
 
-# Root user setup
 USER root
 
-# Install sudo and safely set up user/group
+# Install sudo and create user/group
 RUN apt update && apt install -y sudo && \
     if ! getent group $GID >/dev/null; then \
         addgroup --gid $GID $USERNAME; \
@@ -20,19 +18,33 @@ RUN apt update && apt install -y sudo && \
     chown $UID:$GID /home/$USERNAME /nix && \
     echo "$USERNAME ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
-# Switch to user
-USER $USERNAME
-WORKDIR /home/$USERNAME
 
-# Install vlsiffra Python package
-RUN pip3 install --break-system-packages git+https://github.com/antonblanchard/vlsiffra
-
-# Install system dependencies (non-interactive)
+# Install system dependencies
 RUN sudo apt-get update && \
     sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
         build-essential clang bison flex \
         libreadline-dev gawk tcl-dev libffi-dev git \
-        graphviz xdot pkg-config python3 zlib1g-dev
+        graphviz xdot pkg-config python3 zlib1g-dev \
+        python3-click python3-venv
 
-# Install Python packages
-RUN sudo apt-get install -y python3-click
+# Set up virtual environment and install Python version of vlsiffra
+RUN python3 -m venv /home/designer/venv && \
+    /home/designer/venv/bin/pip install --upgrade pip && \
+    /home/designer/venv/bin/pip install git+https://github.com/antonblanchard/vlsiffra
+
+# Auto-activate the venv in bash shells
+RUN echo 'source ~/venv/bin/activate' >> /home/designer/.bashrc
+
+
+#ENV PATH="/foss/tools/verilator/bin:$PATH"
+ENV PATH="/foss/tools/verilator/bin:/foss/tools/yosys/bin:$PATH"
+# Clone and build C++ version of vlsiffra
+RUN git clone https://github.com/antonblanchard/vlsiffra.git /opt/vlsiffra && \
+    cd /opt/vlsiffra && make
+
+# Add vlsiffra binary to PATH
+ENV PATH="/opt/vlsiffra:$PATH"
+
+
+USER $USERNAME
+WORKDIR /home/$USERNAME
