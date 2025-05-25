@@ -9,13 +9,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.user
-      args:
-        UID: ${USER_ID}
-        GID: ${GROUP_ID}
     image: hpretl/iic-osic-tools:2025.03-custom
-    environment:
-      - UID=${USER_ID}
-      - GID=${GROUP_ID}
     user: root 
     volumes:
       - ./:/fosic/designs/croc

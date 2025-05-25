@@ -1,10 +1,6 @@
 # Base image
 FROM hpretl/iic-osic-tools:2025.03
 
-ARG UID=501
-ARG GID=20
-ARG USERNAME=designer
-
 USER root
 
 # Install sudo and create user/group
@@ -45,5 +41,4 @@ RUN git clone https://github.com/antonblanchard/vlsiffra.git /opt/vlsiffra
 ENV PATH="/opt/vlsiffra:$PATH"
 
 
-#USER $USERNAME
 WORKDIR /home/$USERNAME
