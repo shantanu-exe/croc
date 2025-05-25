@@ -1,44 +1,34 @@
 # Base image
 FROM hpretl/iic-osic-tools:2025.03
 
+# Ensure root
 USER root
 
-# Install sudo and create user/group
-RUN apt update && apt install -y sudo && \
-    if ! getent group $GID >/dev/null; then \
-        addgroup --gid $GID $USERNAME; \
-    fi && \
-    adduser --uid $UID --gid $GID --disabled-password --gecos "" $USERNAME && \
-    mkdir -p /home/$USERNAME && \
-    mkdir -m 0755 /nix && \
-    chown $UID:$GID /home/$USERNAME /nix && \
-    echo "$USERNAME ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
-
-
 # Install system dependencies
-RUN sudo apt-get update && \
-    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y \
+        sudo \
         build-essential clang bison flex \
         libreadline-dev gawk tcl-dev libffi-dev git \
         graphviz xdot pkg-config python3 zlib1g-dev \
         python3-click python3-venv
 
-# Set up virtual environment and install Python version of vlsiffra
-RUN python3 -m venv /home/designer/venv && \
-    /home/designer/venv/bin/pip install --upgrade pip && \
-    /home/designer/venv/bin/pip install git+https://github.com/antonblanchard/vlsiffra
+# Set up Python virtual environment and install Python version of vlsiffra
+RUN python3 -m venv /root/venv && \
+    /root/venv/bin/pip install --upgrade pip && \
+    /root/venv/bin/pip install git+https://github.com/antonblanchard/vlsiffra
 
-# Auto-activate the venv in bash shells
-RUN echo 'source ~/venv/bin/activate' >> /home/designer/.bashrc
+# Auto-activate venv in interactive shells
+RUN echo 'source /root/venv/bin/activate' >> /root/.bashrc
 
-
-#ENV PATH="/foss/tools/verilator/bin:$PATH"
+# Add required tools to PATH (Verilator, Yosys)
 ENV PATH="/foss/tools/verilator/bin:/foss/tools/yosys/bin:$PATH"
-# Clone and build C++ version of vlsiffra
+
+# Clone vlsiffra repo (build manually after container starts)
 RUN git clone https://github.com/antonblanchard/vlsiffra.git /opt/vlsiffra
 
-# Add vlsiffra binary to PATH
+# Add vlsiffra source directory to PATH (for Makefile, not a binary)
 ENV PATH="/opt/vlsiffra:$PATH"
 
-
-WORKDIR /home/$USERNAME
+# Default working directory
+WORKDIR /opt/vlsiffra
